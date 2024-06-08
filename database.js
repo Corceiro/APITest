@@ -16,41 +16,30 @@ const connPool = mysql.createPool({
 });
 
 // Create Database Connection
-export async function ConnectDB1() {
-    var con;
-    try {
-        con = mysql.createConnection({
-            host: 'localhost',
-            user: 'root',
-            password: 'teste123',
-            database: 'api'
-        })
-
-        console.log("Successfully connected");
-        return con;
-    } catch(err) {
-        console.log("NOT Connected");
-        return con;
-    }
-}
-
-
 export async function ConnectDB() {
-    let con;
-    try {
-        //Get a connection from the pool
-        con = await connPool.getConnection();
-        console.log("Successfully connected", con);
-        return con;
-    } catch(err) {
-        console.log("NOT Connected");
-        return con;
-    }
+    connPool.getConnection(function(err, connection) {
+        if(err) {
+            throw err;
+            return false;
+        }
+        console.log(connection);
+        connection.release();
+        return true;
+    });
 }
 
 //
-export async function query1Filter(pool, selector, filter, filterValue) {
-    
+export async function queryOneCondition(pool, selector, filter, filterValue) {
+    return new Promise((resolve, reject) => 
+        connPool.query('Select * from books;', function(err, results, fields) {
+            if(err) {
+                throw err;
+                reject(err);
+            }
+            console.log("Results: ", results);
+            resolve(results);
+        })    
+    );
 };
 
 // var con = ConnectDB();

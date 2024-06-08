@@ -2,7 +2,7 @@ import express from "express";
 import basicAuth from 'express-basic-auth';
 import dotenv from "dotenv";
 dotenv.config({ path: "Properties.env"});
-import {ConnectDB, query1Filter} from "./database.js"
+import {ConnectDB, queryOneCondition} from "./database.js"
 
 const port = process.env.PORT;
 
@@ -15,22 +15,23 @@ server.use(basicAuth({
 
 server.use(express.json());
 // Function --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+
 
 // Requests --------------------------------------------------------------------
-
+// -----------------------------------------------------------------------------
 //HealthCheck to verify if DB is reachable
 server.get("/isAlive", function (req,res) {
-    ConnectDB().then((connection) => {
-        if (connection) {
-            res.send("Database connected"); 
-            console.log(connection);
-        } else {
-            return res.status(500).json({
-                error: true,
-                message: "Not possible to connect to DB"
-            });
+    ConnectDB().then((valid) => {
+        if(valid = true) {
+            res.send("Database connected");
         }
-    })
+        else return res.status(500).json({
+            error: true,
+            message: "Not possible to connect to DB"
+        })
+    });
 });
 
 server.post("/getBooks", function (req,res) {
@@ -40,7 +41,8 @@ server.post("/getBooks", function (req,res) {
     var reqFilterValue = req.body.FilterValue;
 
     if( reqSelector && reqFilter && reqFilterValue) {
-        query1Filter(reqSelector, reqFilter, reqFilterValue).then((queryResult) => {
+        queryOneCondition(reqSelector, reqFilter, reqFilterValue).then((queryResult) => {
+            console.log("Query: ", queryResult);
             if (queryResult) {
                 res.send(queryResult);
             } else {
