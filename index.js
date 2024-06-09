@@ -78,8 +78,8 @@ server.post("/addBooks", function(req, res) {
     let reqBooks = req.body.books;
     let queriesFinished = 0;
     for (var i=0; i < reqBooks.length; i++) {
-        var bookName = reqBooks[i].name;
-        insertIntoBook(reqBooks[i].name, reqBooks[i].editor, reqBooks[i].author).then((queryResults) => {
+        var bookName = reqBooks[i].title;
+        insertIntoBook(reqBooks[i].title, reqBooks[i].editor, reqBooks[i].author).then((queryResults) => {
             if(queryResults.insertId == null ) {
                 return res.status(500).json({
                     error: true,
@@ -101,8 +101,8 @@ server.post("/updateBooks", function(req, res) {
     let reqBooks = req.body.books;
     let queriesFinished = 0;
     for(var i=0; i < reqBooks.length; i++) {
-        var bookName = reqBooks[i].name;
-        updateBook(reqBooks[i].name, reqBooks[i].editor, reqBooks[i].author).then((queryResults) => {
+        var bookName = reqBooks[i].title;
+        updateBook(reqBooks[i].title, reqBooks[i].editor, reqBooks[i].author).then((queryResults) => {
             if(queryResults == null) {
                 return res.status(500).json({
                     error: true,
