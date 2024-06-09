@@ -74,7 +74,7 @@ export async function insertIntoBook(bookName, bookEditor, bookAuthor) {
 }
 
 export async function updateBook(bookName, bookEditor, bookAuthor) {
-    var sql = 'update books set name = ?, editor = ?, author = ? where name = ?;';
+    var sql = 'update books set title = ?, editor = ?, author = ? where title = ?;';
     var inserts = [bookName, bookEditor, bookAuthor, bookName];
     sql = mysql.format(sql, inserts);
 
