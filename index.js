@@ -1,8 +1,8 @@
-import express from "express";
+import express, { json } from "express";
 import basicAuth from 'express-basic-auth';
 import dotenv from "dotenv";
 dotenv.config({ path: "Properties.env"});
-import {ConnectDB, queryOneCondition} from "./database.js"
+import {ConnectDB, insertIntoBook, queryBooks, queryBooksEditorCondition, updateBook} from "./database.js"
 
 const port = process.env.PORT;
 
@@ -19,7 +19,7 @@ server.use(express.json());
 
 
 
-// Requests --------------------------------------------------------------------
+// CRUD Requests --------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 //HealthCheck to verify if DB is reachable
 server.get("/isAlive", function (req,res) {
@@ -34,14 +34,26 @@ server.get("/isAlive", function (req,res) {
     });
 });
 
-server.post("/getBooks", function (req,res) {
+//Get all books (no conditions)
+server.get("/getBooks", function(req, res) {
+    queryBooks().then((queryResults) => {
+        console.log("Query: ", queryResults);
+        if (queryResults) {
+            res.send(queryResults);
+        } else {
+            return res.status(500).json({
+                error: true,
+                message: "Not possible to run the query"
+            })
+        }
+    })
+});
 
-    var reqSelector = req.body.Selector;
-    var reqFilter = req.body.Filter;
+//Get all books with Editor condition
+server.post("/getEditorBooks", function (req,res) {
     var reqFilterValue = req.body.FilterValue;
-
-    if( reqSelector && reqFilter && reqFilterValue) {
-        queryOneCondition(reqSelector, reqFilter, reqFilterValue).then((queryResult) => {
+    if(reqFilterValue) {
+        queryBooksEditorCondition(reqFilterValue).then((queryResult) => {
             console.log("Query: ", queryResult);
             if (queryResult) {
                 res.send(queryResult);
@@ -58,6 +70,53 @@ server.post("/getBooks", function (req,res) {
             message: "no arguments"
         });
     } 
+
+});
+
+//Add a single book
+server.post("/addBooks", function(req, res) {
+    let reqBooks = req.body.books;
+    let queriesFinished = 0;
+    while(queriesFinished != reqBooks.length) {
+        for (var i=0; i < reqBooks.length; i++) {
+            var name = reqBooks[i].name;
+            if(i == (reqBooks.length-1)) { queriesFinished = true; }
+            insertIntoBook(reqBooks[i].name, reqBooks[i].editor, reqBooks[i].author).then((queryResults) => {
+                if (queryResults.insertId != null) {
+                    queriesFinished ++;
+                } else if(queryResults.insertId == null ) {
+                    return res.status(500).json({
+                        error: true,
+                        message: "Insert was not succesful for " + name
+                    });
+                }
+            });
+        }
+    }
+    if (queriesFinished == reqBooks.length) res.send('Success');
+    
+
+    // insertIntoBook(bookName, bookEditor, bookAuthor).then((queryResults) => {
+    //     if (queryResults.insertId != null) {
+    //         res.send("Insert successful!");
+    //     } else {
+    //         return res.status(500).json({
+    //             error: true,
+    //             message: "Not possible to run the query"
+    //         })
+    //     }
+    // })
+})
+
+server.post("/updateBooks", function(req, res) {
+    let reqBooks = req.body.books;
+    
+    for(var i=0; i < reqBooks.length; i++) {
+        console.log("i = " + i);
+        updateBook(reqBooks[i].name, reqBooks[i].editor, reqBooks[i].author).then((updateResults) =>{
+            if (!updateResults) console.log(reqBooks[i].name + " update was not successful!");
+        })
+    }
 
 });
 

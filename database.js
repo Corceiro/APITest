@@ -18,35 +18,73 @@ const connPool = mysql.createPool({
 // Create Database Connection
 export async function ConnectDB() {
     connPool.getConnection(function(err, connection) {
-        if(err) {
-            throw err;
-            return false;
-        }
+        if(err) throw err;
         console.log(connection);
         connection.release();
         return true;
     });
 }
 
-//
-export async function queryOneCondition(pool, selector, filter, filterValue) {
-    return new Promise((resolve, reject) => 
-        connPool.query('Select * from books;', function(err, results, fields) {
+//Query Books
+export async function queryBooks() {
+    return new Promise((resolve, reject) =>
+        connPool.query("Select * from books", function(err, results, fields) {
             if(err) {
                 throw err;
-                reject(err);
+                reject (err);
             }
+            console.log("Rsults: ", results);
+            resolve(results);
+        })
+    );
+}
+
+//Query Books with Editor condition
+export async function queryBooksEditorCondition(filterValue) {
+    var sql = 'Select * from books where editor = ?';
+    var inserts = [filterValue];
+    sql = mysql.format(sql, inserts);
+
+    console.log(sql);
+    
+    return new Promise((resolve, reject) => 
+        connPool.query(sql, function(err, results, fields) {
+            if(err) throw err;
             console.log("Results: ", results);
             resolve(results);
         })    
     );
 };
 
-// var con = ConnectDB();
-//     con.connect(function(err) {
-//         if (err) throw err;
-//         con.query('Select ? from books where ? = ?', [selector, filter, filterValue], function(error, results, fields) {
-//             console.log(results);
-//             return results;
-//         });
-//     });
+//Insert
+export async function insertIntoBook(bookName, bookEditor, bookAuthor) {
+    var sql = 'insert into books (title, editor, author) values (?,?,?)';
+    var inserts = [bookName, bookEditor, bookAuthor];
+    sql = mysql.format(sql, inserts);
+
+    console.log(sql);
+
+    return new Promise((resolve, reject) =>
+        connPool.query(sql, function(err, results, fields) {
+            if(err) throw err;
+            console.log("Result - ", results);
+            resolve(results);
+        })
+    );
+}
+
+export async function updateBook(bookName, bookEditor, bookAuthor) {
+    var sql = 'update books set name = ?, editor = ?, author = ? where name = ?;';
+    var inserts = [bookName, bookEditor, bookAuthor, bookName];
+    sql = mysql.format(sql, inserts);
+
+    console.log(sql);
+
+    return new Promise((resolve, reject) =>
+        connPool.query(sql, function(err, results, fields) {
+            if(err) throw err;
+            console.log("Result - ", results);
+            resolve(results);
+        })
+    );
+}
